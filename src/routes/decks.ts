@@ -1,0 +1,74 @@
+import { Router, Request, Response } from 'express'
+import prisma from '../lib/prisma'
+
+const router = Router()
+
+// GET /decks - traer todos los mazos
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const decks = await prisma.deck.findMany({
+      include: { cards: true }
+    })
+    res.json(decks)
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener los mazos' })
+  }
+})
+
+// POST /decks - crear un mazo
+router.post('/', async (req: Request, res: Response) => {
+  try {
+    const { title } = req.body
+
+    if (!title) {
+      res.status(400).json({ error: 'El título es requerido' })
+      return
+    }
+
+    const deck = await prisma.deck.create({
+      data: { title, userId: 1 }
+    })
+
+    res.status(201).json(deck)
+  } catch (error) {
+    res.status(500).json({ error: 'Error al crear el mazo' })
+  }
+})
+
+// GET /decks/:id - traer un mazo específico
+router.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+
+    const deck = await prisma.deck.findUnique({
+      where: { id: Number(id) },
+      include: { cards: true }
+    })
+
+    if (!deck) {
+      res.status(404).json({ error: 'Mazo no encontrado' })
+      return
+    }
+
+    res.json(deck)
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener el mazo' })
+  }
+})
+
+// DELETE /decks/:id - borrar un mazo
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+
+    await prisma.deck.delete({
+      where: { id: Number(id) }
+    })
+
+    res.json({ message: 'Mazo eliminado' })
+  } catch (error) {
+    res.status(500).json({ error: 'Error al eliminar el mazo' })
+  }
+})
+
+export default router
