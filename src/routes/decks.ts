@@ -1,10 +1,13 @@
 import { Router, Request, Response } from 'express'
 import prisma from '../lib/prisma'
+import { authMiddleware, AuthRequest } from '../middleware/auth'
 
 const router = Router()
 
+router.use(authMiddleware)
+
 // GET /decks - traer todos los mazos
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: AuthRequest, res: Response) => {
   try {
     const decks = await prisma.deck.findMany({
       include: { cards: true }
@@ -16,7 +19,7 @@ router.get('/', async (req: Request, res: Response) => {
 })
 
 // POST /decks - crear un mazo
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req: AuthRequest, res: Response) => {
   try {
     const { title } = req.body
 
@@ -26,7 +29,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     const deck = await prisma.deck.create({
-      data: { title, userId: 1 }
+      data: { title, userId: req.userId as number }
     })
 
     res.status(201).json(deck)
@@ -36,7 +39,7 @@ router.post('/', async (req: Request, res: Response) => {
 })
 
 // GET /decks/:id - traer un mazo específico
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params
 
@@ -57,7 +60,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 })
 
 // DELETE /decks/:id - borrar un mazo
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params
 
