@@ -33,8 +33,11 @@ router.post('/generate/:deckId', async (req: AuthRequest, res: Response) => {
         const prompt = `Analizá el siguiente texto y generá 5 flashcards de estudio.
         Respondé SOLO con un JSON válido, sin explicaciones ni backticks, con este formato exacto:
         [
-        { "question": "Pregunta", "answer": "Respuesta" },
-        { "question": "Pregunta", "answer": "Respuesta" }, 
+        { 
+            "question": "pregunta",
+            "answer": "respuesta correcta",
+            "wrongAnswers": ["respuesta incorrecta 1", "respuesta incorrecta 2", "respuesta incorrecta 3"]
+        }
         ]
         Texto: ${text}`;
     
@@ -44,9 +47,10 @@ router.post('/generate/:deckId', async (req: AuthRequest, res: Response) => {
         const cards = JSON.parse(responseText);
 
         const saveCards = await prisma.flashcard.createMany({
-            data: cards.map((card: { question: string; answer: string }) => ({
+            data: cards.map((card: { question: string; answer: string; wrongAnswers: string[]}) => ({
                 question: card.question,
                 answer: card.answer,
+                wrongAnswers: card.wrongAnswers,
                 deckId: Number(deckId)
             }))
         });
