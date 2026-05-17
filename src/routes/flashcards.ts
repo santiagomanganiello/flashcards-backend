@@ -27,6 +27,14 @@ router.post('/generate/:deckId', async (req: AuthRequest, res: Response) => {
         if (!deck) {
             return res.status(404).json({ error: 'Mazo no encontrado' });
         }
+
+        const cardCount = await prisma.flashcard.count({
+            where: { deckId: Number(deckId) }
+        });
+
+        if (cardCount >= 20) {
+            return res.status(400).json({ error: 'Has alcanzado el límite de flashcards para este mazo' });
+        }
     
         const model = genAI.getGenerativeModel({model: 'gemini-2.5-flash'});
 

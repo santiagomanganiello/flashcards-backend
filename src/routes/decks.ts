@@ -28,6 +28,15 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       return
     }
 
+    const deckCount = await prisma.deck.count({
+      where: { userId: req.userId }
+    })
+
+    if (deckCount >= 6) {
+      res.status(400).json({ error: 'Has alcanzado el límite de mazos' })
+      return
+    }
+
     const deck = await prisma.deck.create({
       data: { title, userId: req.userId as number }
     })
