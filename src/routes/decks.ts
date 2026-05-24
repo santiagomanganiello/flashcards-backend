@@ -10,7 +10,8 @@ router.use(authMiddleware)
 router.get('/', async (req: AuthRequest, res: Response) => {
   try {
     const decks = await prisma.deck.findMany({
-      include: { cards: true }
+      include: { cards: true },
+      where: { userId: req.userId }
     })
     res.json(decks)
   } catch (error) {
@@ -77,7 +78,7 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
       where: { id: Number(id) }
     })
 
-    res.json({ message: 'Mazo eliminado' })
+    res.status(200).json({ message: 'Mazo eliminado' })
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar el mazo' })
   }

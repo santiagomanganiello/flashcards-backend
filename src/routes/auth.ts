@@ -2,16 +2,17 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma';
+import { validateRegister, validateLogin, handleValidationErrors } from '../validators/auth.validators';
 
 const router = Router();
 
 // POST /auth/register
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', validateRegister, handleValidationErrors, async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ message: 'Email y contraseña son requeridos' });
+            return res.status(400).json({ message:'Email y contraseña son requeridos'});
         }
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -30,12 +31,13 @@ router.post('/register', async (req: Request, res: Response) => {
 
         res.status(201).json({ message: 'Usuario registrado exitosamente', userId: user.id });
     } catch (error) {
+        console.error('Error registering user:', error);
         res.status(500).json({ message: 'Error al registrar el usuario'});
     }
 });
 
 // POST /auth/login
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', validateLogin, handleValidationErrors, async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
 
